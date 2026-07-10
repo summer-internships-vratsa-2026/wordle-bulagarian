@@ -37,6 +37,7 @@
             --key-font-size: 14px;
             --keyboard-padding: 10px;
             --keyboard-bg: rgb(29, 29, 29);
+            --open-login:green;
         }
 
         body.light-mode {
@@ -51,6 +52,7 @@
             --absent-border: #787c7e;
             --header-border: #d3d6da;
             --keyboard-bg: rgb(61, 61, 61);
+            --open-login:green;
         }
 
         body {
@@ -68,22 +70,50 @@
         }
 
         header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 50px;
-            border-bottom: 1px solid var(--header-border);
-            margin-bottom: 20px;
-            position: relative;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 50px;
+    border-bottom: 1px solid var(--header-border);
+    padding: 0 15px;
+    box-sizing: border-box;
+}
 
-        h1 {
-            font-size: 32px;
-            margin: 0;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 10;
+}
+
+.user-display {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--correct);
+    display: none;
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Keeps the title centered regardless of button widths */
+h1 {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 10;
+}
 
         #themeToggle {
             position: absolute;
@@ -244,9 +274,6 @@
             cursor: pointer;
             font-weight: bold;
         }
-        .modal.show {
-    display: flex !important; /* Forces the modal to show when the class is added */
-}
 
 .modal-content {
     background: var(--modal-bg);
@@ -255,6 +282,82 @@
     max-width: 400px;
     width: 90%;
     color: var(--text);
+}
+.login-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.login-input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    background: var(--bg);
+    border: 2px solid var(--tile-border);
+    color: var(--text);
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.login-input:focus {
+    outline: none;
+    border-color: var(--key-bg);
+}
+
+.login-form {
+    width: 100%;
+}
+
+.leaderboard-list {
+    text-align: left;
+    max-height: 320px;
+    overflow-y: auto;
+    margin: 15px 0;
+}
+
+.leaderboard-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--tile-border);
+    font-size: 15px;
+    gap: 10px;
+}
+
+.leaderboard-row.me {
+    background: rgba(83, 141, 78, 0.2);
+    border-radius: 6px;
+}
+
+.leaderboard-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.leaderboard-empty {
+    color: #aaa;
+    text-align: center;
+    padding: 20px 0;
+}
+
+.rank-badge {
+    display: inline-block;
+    width: 24px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.streak-badge {
+    white-space: nowrap;
+    font-weight: bold;
 }
 
         .settings-button {
@@ -422,10 +525,36 @@
 </head>
 <body>
     <header>
-        <h1>Wordle БГ</h1>
-        <button id="themeToggle" title="Смени тема">🌓</button>
+        <div class="header-left">
+            <button id="themeToggle" class="icon-btn" style="position: static;">🌓</button>
+            <button id="openLeaderboard" class="icon-btn" title="Класация">🏆</button>
+        </div>
+        <h1>Wordle</h1>
+        <div class="header-right">
+            <span id="userDisplay" class="user-display"></span>
+            <button id="openLogin" class="icon-btn" style="font-size: 14px; font-weight: bold;">ВХОД</button>
+        </div>
     </header>
-    <div class="container">
+
+<!-- Login / Register Section (Hidden by default) -->
+<div id="loginPage" class="container" style="display: none; margin-top: 50px;">
+    <div class="modal-content">
+        <h3 id="loginTitle">Вход в профил</h3>
+        <p id="loginSubtitle" style="color:#aaa; font-size:13px; margin-top:-8px;">Нямаш профил? Натисни "Регистрация" отдолу.</p>
+        <form id="signInForm">
+            <input type="text" id="username" placeholder="Потребителско име" class="login-input" required>
+            <input type="email" id="email" placeholder="Имейл" class="login-input" style="display:none;">
+            <input type="password" id="password" placeholder="Парола" class="login-input" required>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button type="submit" id="signInBtn" class="toggle-button" style="flex:1;">Вход</button>
+                <button type="button" id="signUpBtn" class="toggle-button" style="flex:1; background: var(--key-bg); color: var(--key-text);">Регистрация</button>
+            </div>
+        </form>
+        <div id="loginError" class="status-message" style="color:#ff6b6b;"></div>
+        <button id="backToGame" style="background: transparent; border: none; color: var(--correct); margin-top: 20px; cursor: pointer;">← Обратно към играта</button>
+    </div>
+</div>
+    <div class="container" id="gameContainer">
         <div id="board"></div>
         <div class="keyboard">
             <div class="key-row" id="row-1"></div>
@@ -462,6 +591,16 @@
         <button id="modalButton" onclick="closeModal()">Започни играта</button>
     </div>
 </div>
+
+<div id="leaderboardModal" class="modal">
+    <div class="modal-content" style="max-width: 420px;">
+        <h2>🏆 Класация</h2>
+        <p style="color:#aaa; margin-top:-10px;">Дневна серия (streak) на играчите</p>
+        <div id="leaderboardList" class="leaderboard-list"></div>
+        <button id="closeLeaderboard">Затвори</button>
+    </div>
+</div>
+
     <div class="bg-keyboard">
 
     </div>
@@ -474,6 +613,121 @@
         let currentRow = 0;
         let currentCol = 0;
         let currentGuess = "";
+
+        // ---------- Auth / Users / Leaderboard (localStorage based) ----------
+        const USERS_KEY = 'wordle-users';
+        const CURRENT_USER_KEY = 'wordle-currentUser';
+
+        function getUsers() {
+            try {
+                return JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        }
+
+        function getCurrentUser() {
+            return localStorage.getItem(CURRENT_USER_KEY);
+        }
+
+        function setCurrentUser(username) {
+            if (username) localStorage.setItem(CURRENT_USER_KEY, username);
+            else localStorage.removeItem(CURRENT_USER_KEY);
+        }
+
+        function todayStr() {
+            return new Date().toISOString().slice(0, 10);
+        }
+
+        function yesterdayStr() {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            return d.toISOString().slice(0, 10);
+        }
+
+        function updateAuthUI() {
+            const current = getCurrentUser();
+            const loginBtn = document.getElementById('openLogin');
+            const userDisplay = document.getElementById('userDisplay');
+            if (current) {
+                loginBtn.textContent = 'ИЗХОД';
+                userDisplay.textContent = current;
+                userDisplay.style.display = 'inline';
+            } else {
+                loginBtn.textContent = 'ВХОД';
+                userDisplay.textContent = '';
+                userDisplay.style.display = 'none';
+            }
+        }
+
+        // Updates the signed-in user's daily streak based on win/loss result.
+        function updateStreak(won) {
+            const username = getCurrentUser();
+            if (!username) return; // Guests don't have tracked streaks
+
+            const users = getUsers();
+            const user = users[username];
+            if (!user) return;
+
+            const today = todayStr();
+            if (user.lastPlayedDate === today) {
+                // Already recorded a result today; don't double count.
+                return;
+            }
+
+            if (won) {
+                if (user.lastPlayedDate === yesterdayStr()) {
+                    user.streak = (user.streak || 0) + 1;
+                } else {
+                    user.streak = 1;
+                }
+                user.bestStreak = Math.max(user.bestStreak || 0, user.streak);
+            } else {
+                user.streak = 0;
+            }
+            user.lastPlayedDate = today;
+
+            saveUsers(users);
+            renderLeaderboard();
+        }
+
+        function renderLeaderboard() {
+            const users = getUsers();
+            const current = getCurrentUser();
+            const list = Object.entries(users)
+                .map(([username, data]) => ({
+                    username,
+                    streak: data.streak || 0,
+                    bestStreak: data.bestStreak || 0
+                }))
+                .sort((a, b) => (b.streak - a.streak) || (b.bestStreak - a.bestStreak));
+
+            const container = document.getElementById('leaderboardList');
+            if (!container) return;
+
+            if (list.length === 0) {
+                container.innerHTML = '<div class="leaderboard-empty">Все още няма играчи. Влез в профила си и играй, за да се появиш тук!</div>';
+                return;
+            }
+
+            container.innerHTML = list.map((u, i) => {
+                const isMe = u.username === current;
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+                return `
+                    <div class="leaderboard-row${isMe ? ' me' : ''}">
+                        <span class="leaderboard-name">
+                            <span class="rank-badge">${i + 1}.</span>
+                            <span>${medal} ${u.username}${isMe ? ' (ти)' : ''}</span>
+                        </span>
+                        <span class="streak-badge">🔥 ${u.streak} <span style="color:#aaa; font-weight:normal; font-size:12px;">(най-добра: ${u.bestStreak})</span></span>
+                    </div>
+                `;
+            }).join('');
+        }
 
         // 2. Load Words from File
         async function initializeGame() {
@@ -674,9 +928,11 @@
             if (currentGuess === secretWord) {
                 showModal("Поздравления!", "Вие спечелихте!");
                 gameOver = true;
+                updateStreak(true);
             } else if (currentRow === 5) {
                 showModal("Край на играта", "Думата беше: " + secretWord);
                 gameOver = true;
+                updateStreak(false);
             } else {
                 currentRow++;
                 currentCol = 0;
@@ -716,17 +972,187 @@
             }
         }
 
-        // Show tutorial on page load
-    // Show the tutorial as soon as the page loads
-    window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('gameModal').classList.add('show');
-    });
+        // Tutorial modal is shown on load (not a login page) so the game is
+        // always visible underneath as soon as the page loads.
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('gameModal').classList.add('show');
+        });
 
-    // Function to close the modal
-    function closeModal() {
-        document.getElementById('gameModal').classList.remove('show');
-    }
-    
+        // Function to close the tutorial modal
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('show');
+        }
+
+        // ---------- Login / Logout / Leaderboard wiring ----------
+        const loginBtn = document.getElementById('openLogin');
+        const signInForm = document.getElementById('signInForm');
+        const loginPage = document.getElementById('loginPage');
+        const gameContainer = document.getElementById('gameContainer');
+        const backBtn = document.getElementById('backToGame');
+        const loginError = document.getElementById('loginError');
+        const leaderboardModal = document.getElementById('leaderboardModal');
+        const openLeaderboardBtn = document.getElementById('openLeaderboard');
+        const closeLeaderboardBtn = document.getElementById('closeLeaderboard');
+
+        function showLoginError(message) {
+            if (!loginError) return;
+            loginError.innerText = message;
+            loginError.classList.add('show');
+        }
+
+        function clearLoginError() {
+            if (!loginError) return;
+            loginError.innerText = '';
+            loginError.classList.remove('show');
+        }
+
+        if (loginBtn) {
+            loginBtn.addEventListener('click', () => {
+                if (getCurrentUser()) {
+                    // Currently logged in -> log out
+                    setCurrentUser(null);
+                    updateAuthUI();
+                    renderLeaderboard();
+                } else {
+                    // Not logged in -> show sign in form
+                    clearLoginError();
+                    gameContainer.style.display = 'none';
+                    loginPage.style.display = 'flex';
+                }
+            });
+        }
+
+        if (backBtn) {
+            backBtn.onclick = function() {
+                loginPage.style.display = 'none';     // Hide Login
+                gameContainer.style.display = 'flex';  // Show Game
+            };
+        }
+
+        const signUpBtn = document.getElementById('signUpBtn');
+
+        function readLoginFields() {
+            return {
+                username: document.getElementById('username').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value
+            };
+        }
+
+        function completeAuth(username) {
+            setCurrentUser(username);
+            updateAuthUI();
+            renderLeaderboard();
+
+            loginPage.style.display = 'none';
+            gameContainer.style.display = 'flex';
+            signInForm.reset();
+            resetLoginFormMode();
+        }
+
+        // "Вход" - Sign IN: only logs into an EXISTING account.
+        if (signInForm) {
+            signInForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                clearLoginError();
+
+                const { username, password } = readLoginFields();
+
+                if (!username || !password) {
+                    showLoginError('Моля въведи потребителско име и парола!');
+                    return;
+                }
+
+                const users = getUsers();
+                const existing = users[username];
+
+                if (!existing) {
+                    showLoginError('Няма такъв профил. Натисни "Регистрация", за да създадеш нов.');
+                    return;
+                }
+
+                if (existing.password !== password) {
+                    showLoginError('Грешна парола за този потребител!');
+                    return;
+                }
+
+                completeAuth(username);
+            });
+        }
+
+        // "Регистрация" - Sign UP: creates a brand NEW account.
+        // The email field is hidden by default (login only needs username +
+        // password). Clicking "Регистрация" the first time reveals the email
+        // field so the user can fill it in; clicking again completes signup.
+        const emailField = document.getElementById('email');
+        const loginSubtitle = document.getElementById('loginSubtitle');
+
+        if (signUpBtn) {
+            signUpBtn.addEventListener('click', () => {
+                clearLoginError();
+
+                const emailHidden = emailField.style.display === 'none';
+                if (emailHidden) {
+                    emailField.style.display = 'block';
+                    emailField.required = true;
+                    emailField.focus();
+                    signUpBtn.textContent = 'Регистрирай се';
+                    loginSubtitle.textContent = 'Попълни имейл и парола, после натисни "Регистрирай се".';
+                    return;
+                }
+
+                const { username, email, password } = readLoginFields();
+
+                if (!username || !email || !password) {
+                    showLoginError('Моля попълни всички полета за регистрация!');
+                    return;
+                }
+
+                const users = getUsers();
+                if (users[username]) {
+                    showLoginError('Това потребителско име вече съществува. Натисни "Вход".');
+                    return;
+                }
+
+                users[username] = {
+                    email: email,
+                    password: password,
+                    streak: 0,
+                    bestStreak: 0,
+                    lastPlayedDate: null
+                };
+                saveUsers(users);
+
+                completeAuth(username);
+            });
+        }
+
+        // If the user switches back to plain sign-in (submits the form),
+        // reset the registration UI state back to its default (email hidden).
+        function resetLoginFormMode() {
+            if (!emailField) return;
+            emailField.style.display = 'none';
+            emailField.required = false;
+            if (signUpBtn) signUpBtn.textContent = 'Регистрация';
+            if (loginSubtitle) loginSubtitle.textContent = 'Нямаш профил? Натисни "Регистрация" отдолу.';
+        }
+
+        if (openLeaderboardBtn) {
+            openLeaderboardBtn.addEventListener('click', () => {
+                renderLeaderboard();
+                leaderboardModal.classList.add('show');
+            });
+        }
+
+        if (closeLeaderboardBtn) {
+            closeLeaderboardBtn.addEventListener('click', () => {
+                leaderboardModal.classList.remove('show');
+            });
+        }
+
+        // Initialize auth UI + leaderboard on page load
+        updateAuthUI();
+        renderLeaderboard();
     </script>
 </body>
 </html>
